@@ -1,0 +1,92 @@
+---
+title: "Análise do Julio"
+author: "Julio"
+institute: "IME-USP"
+format: 
+  html:
+    code-fold: true
+    self-contained: true
+lang: pt
+bibliography: references.bib
+---
+
+## Relatório sobre a ANCINE
+
+A ANCINE é a entidade responsável pela curadoria e organização de informações audiovisuais do Brasil. A **base** de dados da ANCINE contém informações de todos os filmes que estiveram em cartaz no Brasil entre os anos de 2009 e 2021.
+
+```{r}
+#| message: false
+library(tidyverse)
+ancine <- readr::read_csv("ancine.csv")
+```
+
+A @tbl-ancine-head mostra as principais colunas da base. Uma citação: @colosimo2006
+
+```{r}
+#| label: tbl-ancine-head
+#| tbl-cap: "As primeiras linhas da base."
+rmarkdown::paged_table(head(ancine))
+```
+
+$$
+\int_{-\infty}^\infty e^{-x^2} dx = \sqrt{\pi}
+$$
+
+
+## Lista dos filmes com maior renda
+
+```{r}
+dados_grafico <- ancine |> 
+  filter(publico > 10e6) |> 
+  mutate(
+    titulo = paste0(titulo, " (", year(dt_lancamento), ")"),
+    titulo = fct_reorder(titulo, renda)
+  )
+```
+
+```{r}
+dados_grafico |> 
+  ggplot() +
+  aes(x = renda / 1e6, y = titulo) +
+  geom_col(fill = "#C4161C") +
+  theme_minimal(14) +
+  labs(
+    x = "Renda (R$ milhões)",
+    y = "Filme",
+    title = "Filmes com maior renda",
+    subtitle = "Valores sem ajuste pela inflação",
+    caption = "Fonte: Ancine"
+  )
+```
+
+## Público ao longo do tempo
+
+```{r}
+publico_tempo <- ancine |> 
+  mutate(mes = floor_date(dt_lancamento, "month")) |> 
+  group_by(mes) |> 
+  summarise(publico = sum(publico)) |> 
+  filter(mes < "2022-01-01")
+```
+
+A @fig-no-tempo mostra o público ao longo do tempo.
+
+```{r}
+#| label: fig-no-tempo
+#| message: false
+#| fig-cap: "Público no tempo."
+publico_tempo |> 
+  ggplot() +
+  aes(mes, y = publico / 1e6) +
+  geom_line(size = 1, color = "#BCBEC0") +
+  scale_x_date(date_breaks = "year", date_labels = "%Y") +
+  theme_minimal(14) +
+  geom_smooth(span = .1, color = "#C4161C", se = FALSE) +
+  labs(
+    x = "Mês",
+    y = "Público (milhões)",
+    title = "Público nos cinemas ao longo dos meses",
+    caption = "Fonte: Ancine"
+  )
+```
+

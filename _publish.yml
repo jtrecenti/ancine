@@ -1,0 +1,4 @@
+- source: ancine.qmd
+  quarto-pub:
+    - id: 9a1caea6-1786-4d05-ac80-d475608f6474
+      url: 'https://quartopub.com/sites/jtrecenti/analise-ancine2'
